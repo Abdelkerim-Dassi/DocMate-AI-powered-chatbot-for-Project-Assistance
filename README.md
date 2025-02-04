@@ -33,7 +33,7 @@ DocMate is an advanced AI-powered solution designed to streamline project docume
 
 ### Prerequisites  
 - Docker & Docker Compose  
-- Python 3.8+  
+- Python 3.10
 - Kubernetes cluster (AWS EKS recommended)  
 
 ### Installation Steps  
@@ -41,3 +41,13 @@ DocMate is an advanced AI-powered solution designed to streamline project docume
    ```bash
    git clone <repository-url>
    cd docmate
+
+2. Configure environment variables in .env:
+
+   AWS credentials
+   Weaviate API keys
+   LLM-related configuration
+
+3. Build and run the application using Docker Compose:
+   
+   docker-compose up --build
