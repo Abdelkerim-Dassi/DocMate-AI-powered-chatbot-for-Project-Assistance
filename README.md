@@ -49,5 +49,5 @@ DocMate is an advanced AI-powered solution designed to streamline project docume
    LLM-related configuration
 
 3. Build and run the application using Docker Compose:
-   
+   ```bash
    docker-compose up --build
