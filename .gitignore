@@ -1,0 +1,6 @@
+.chainlit/
+.vscode/
+chatbot_venv/
+_pycache_/
+tickets.json
+.env

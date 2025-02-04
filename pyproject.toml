@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "chatbot-confluence"  # Your project name
+version = "0.1.0"            # Initial version
+description = "A Confluence integrated chatbot application"  # Brief project description
+authors = ["Abdelkerim Dassi <abdelkerymdessi@gmail.com>"]  # Your contact info
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+llama-index = "0.10.31"
+llama-index-core = "0.10.31"
+llama-index-llms-ollama = "^0.1.2"
+llama-index-embeddings-sagemaker-endpoint = "^0.1.3"
+chainlit = "1.1.400"
+boto3 = "^1.34.91"
+weaviate-client = "==3.*"
+llama-index-vector-stores-weaviate = "^0.1.5"
+llama-index-readers-confluence = "^0.1.4"
+aws = "^0.2.5"
+poetry-plugin-export = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

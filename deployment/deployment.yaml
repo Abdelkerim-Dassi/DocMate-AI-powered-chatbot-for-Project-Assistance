@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: confluence-chatapp
+  namespace: confluence-chatbot
+  labels:
+    app: confluence-chatapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: confluence-chatapp
+  template:
+    metadata:
+      labels:
+        app: confluence-chatapp
+    spec:
+      imagePullSecrets:
+      - name: gitlab-registry-credentials-chatapp1
+      containers:
+      - image: "__CI_REGISTRY_IMAGE__" # Replace with the actual image
+        imagePullPolicy: Always
+        name: confluence-chatapp
+        ports:
+        - containerPort: 8100
+        env:
+          - name: CHAINLIT_AUTH_SECRET
+            value: "__CHAINLIT_AUTH_SECRET__"
+          - name: LLM_ENDPOINT
+            value: "__LLM_ENDPOINT__"
+          - name: REGION_NAME
+            value: "__REGION_NAME__"
+          - name: SAGEMAKER_ENDPOINT
+            value: "__SAGEMAKER_ENDPOINT__"
+          - name: AWS_ACCESS_KEY_ID
+            value: "__AWS_ACCESS_KEY_ID__"
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: aws-secret-access-key
+                key: aws-secret-access-key
+          - name: WEAVIATE_CLIENT
+            value: "__WEAVIATE_CLIENT__"
+
+        resources:
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "64Mi"
+        readinessProbe:
+          httpGet:
+            path: /chat/health
+            port: 8100
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-secret-access-key
+  labels:
+    app: confluence-chatapp
+stringData:
+  aws-secret-access-key: "__AWS_SECRET_ACCESS_KEY__"
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: confluence-chatapp
+  name: confluence-chatapp
+  namespace: confluence-chatbot
+spec:
+  ports:
+  - name: 8100-tcp
+    port: 8100
+    protocol: TCP
+    targetPort: 8100
+  selector:
+    app: confluence-chatapp
+  sessionAffinity: None
+  type: ClusterIP

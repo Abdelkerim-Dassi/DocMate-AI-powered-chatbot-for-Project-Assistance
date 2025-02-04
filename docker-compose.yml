@@ -1,0 +1,29 @@
+version: '3.8'
+
+
+services:
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.27.6
+    ports:
+      - "8080:8080"
+    networks:
+      - confluence-chatbot-network
+
+  chatbot:
+    build: .
+    ports:
+      - "8100:8100"
+    networks:
+      - confluence-chatbot-network
+    environment:
+      WEAVIATE_CLIENT: "http://weaviate:8080" 
+    volumes:
+      - "./chainlit_data:/app/.chainlit"  # Mount local writable directory
+    env_file:
+      - .env
+
+
+networks:
+  confluence-chatbot-network:
+    driver: bridge
+    external: true

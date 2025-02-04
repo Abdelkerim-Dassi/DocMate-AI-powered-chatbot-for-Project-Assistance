@@ -1,0 +1,61 @@
+stages:
+- build
+- deploy
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}
+
+buildProject:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  stage: build
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"gitlab-ci-token\",\"password\":\"$CI_JOB_TOKEN\"}}}" > /kaniko/.docker/config.json
+    # use warmer to build local image cache in persistent volume mounted to /cache
+    - /kaniko/warmer -c /cache --image=node:14.8.0
+    - /kaniko/executor -v debug --cache=true
+      --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+
+initializeDeployment:
+    stage: deploy
+    dependencies:
+      - buildProject
+    image:
+      name: alpine/k8s:1.18.2
+    environment:
+      name: dev
+      kubernetes:
+        namespace: confluence-chatbot
+    script:
+      - kubectl version
+      - sed -i "s~__CI_REGISTRY_IMAGE__~${IMAGE_TAG}~" deployment/deployment.yaml
+      - sed -i "s~__AWS_ACCESS_KEY_ID__~$AWS_ACCESS_KEY_ID~" deployment/deployment.yaml
+      - sed -i "s~__AWS_SECRET_ACCESS_KEY__~$AWS_SECRET_ACCESS_KEY~" deployment/deployment.yaml
+      - sed -i "s~__CHAINLIT_AUTH_SECRET__~$CHAINLIT_AUTH_SECRET~" deployment/deployment.yaml 
+      - sed -i "s~__LLM_ENDPOINT__~$LLM_ENDPOINT~" deployment/deployment.yaml 
+      - sed -i "s~__REGION_NAME__~$REGION_NAME~" deployment/deployment.yaml 
+      - sed -i "s~__SAGEMAKER_ENDPOINT__~$SAGEMAKER_ENDPOINT~" deployment/deployment.yaml
+      - sed -i "s~__WEAVIATE_CLIENT__~$WEAVIATE_CLIENT~" deployment/deployment.yaml
+      
+      - kubectl apply -f deployment/deployment.yaml
+
+FinishDeployment:
+    stage: deploy
+    dependencies:
+      - buildProject
+    image:
+      name: alpine/k8s:1.18.2
+    environment:
+      name: dev
+      kubernetes:
+        namespace: confluence-chatbot
+    script:
+      - >-
+        kubectl patch deployment/chatapp --patch '{"spec": {"template": {"spec": {"containers": [{"name": "chatapp","image":"'$IMAGE_TAG'"}]}}}}'
+    rules:
+      - if: '$CI_COMMIT_REF_NAME == "master" && $MANUAL_RUN != "true"'
