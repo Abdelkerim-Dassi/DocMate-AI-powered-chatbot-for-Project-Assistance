@@ -39,7 +39,7 @@ DocMate is an advanced AI-powered solution designed to streamline project docume
 ### Installation Steps  
 1. Clone this repository:  
    ```bash
-   git clone <repository-url>
+   git clone "https://github.com/Abdelkerim-Dassi/DocMate-AI-powered-chatbot-for-Project-Assistance.git"
    cd docmate
 
 2. Configure environment variables in .env:
